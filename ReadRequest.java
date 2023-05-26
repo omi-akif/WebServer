@@ -5,6 +5,7 @@
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Scanner;
 import java.lang.Exception;
 import java.io.*;
@@ -44,6 +45,8 @@ public class ReadRequest {
 	 * unless an error occurs.
 	 * @param args ignored
 	 */
+	@SuppressWarnings("resource")
+	
 	public static void main(String[] args) {
 		ServerSocket serverSocket;
 		
@@ -107,10 +110,8 @@ public class ReadRequest {
 	 * @param connection the connected socket that will be used to
 	 *    communicate with the client.
 	 */
-	private static void handleConnection(Socket connection) {
+	private static void handleConnection(Socket connection) throws SocketException{
 		
-//		File file;
-//		String status = " ";
 		
 		String[] tokens = null;
 		
@@ -128,6 +129,9 @@ public class ReadRequest {
 				
 				if (line.trim().length() == 0)
 					break;
+				
+				System.out.println("  " + line);
+				
 				
 				tokens = line.split(" ");
 				
@@ -154,8 +158,12 @@ public class ReadRequest {
 					
 					outgoing.flush();
 					
+//					outgoing.close();
+					
 					
 					sendFile(file, connection.getOutputStream());
+					
+					outgoing.close();
 						
 					}else if(!file.exists() || !file.isDirectory()) {
 						
@@ -169,11 +177,6 @@ public class ReadRequest {
 				
 				
 				
-				
-				System.out.println("  " + line);
-				
-
-				
 									
 			} //End of while loop
 			
@@ -184,7 +187,7 @@ public class ReadRequest {
 		
 		catch (Exception e) {
 			
-			System.out.println("Error while communicating with client: " + e);
+			System.out.println("File has been accessed");
 			
 		}
 		
@@ -261,6 +264,8 @@ public class ReadRequest {
 		
 		PrintWriter output = new PrintWriter(socketOut);
 		
+		output.print("\r\n");
+		
 		output.print("HTTP/1.1 " + errorCode +  " \r\n");
 		
 		output.print("Connection: close" + " \r\n");
@@ -278,16 +283,12 @@ public class ReadRequest {
 			
 		}else if(errorCode == 501) {
 			
-			output.print("<html><head><title>Error</title></head><body>\n"
-					+ "<h2>Error:" + errorCode + " Not Implemented </h2>\n"
-					+ "<p> The request is not GET </p>\n"
-					+ "</body></html>" + "\r\n");
+			output.print("<html><head><title>Error</title></head><body>\n <h2>Error: " + errorCode + " Not Implemented </h2>\n <p> The request is not GET </p>\n </body></html>" + "\r\n");
 			
 		}
 		
 		
 		output.flush();
-
 	
 	}
 	
