@@ -34,7 +34,7 @@ public class ReadRequest {
 	
 	private static String pathFile = null;//This does not need to match for handshake
 
-	public static File file;
+	private static File file;
 	
 	
 	/**
@@ -49,10 +49,14 @@ public class ReadRequest {
 		
 		
 		try {
+			
 			serverSocket = new ServerSocket(LISTENING_PORT);
+			
 		}
 		catch (Exception e) {
+			
 			System.out.println("Failed to create listening socket.");
+			
 			return;
 		}
 		
@@ -61,14 +65,13 @@ public class ReadRequest {
 		
 		
 		try {
+			
 			while (true) {
 				
 				
 				Socket connection = serverSocket.accept();
 				System.out.println("\nConnection from "  + connection.getRemoteSocketAddress());
 				handleConnection(connection);
-				
-				
 				
 				
 			}
@@ -106,13 +109,14 @@ public class ReadRequest {
 	 */
 	private static void handleConnection(Socket connection) {
 		
+//		File file;
 //		String status = " ";
 		
+		String[] tokens = null;
+		
 		try {
+			
 			Scanner in = new Scanner(connection.getInputStream());
-			
-			
-			
 			
 			
 			while (true) {
@@ -125,81 +129,65 @@ public class ReadRequest {
 				if (line.trim().length() == 0)
 					break;
 				
-				String[] tokens = line.split(" ");
+				tokens = line.split(" ");
 				
-
+				pathFile = tokens[1];
+				
+				file = new File(rootDirectory + pathFile); //Read the file
+				
+				
+				if(tokens[0].contains("GET") && (tokens[2].contains("HTTP/1.1") || tokens[2].contains("HTTP/1.1")) && file.canRead() && file.exists()) {
 					
-				if(tokens[0].contains("GET") && (tokens[2].contains("HTTP/1.1") || tokens[2].contains("HTTP/1.1"))) {
 					
-
-					System.out.println();
+					PrintWriter outgoing = new PrintWriter(connection.getOutputStream()); //This can cause malicious way of intruding
 					
-					System.out.println("Handshake Confirmed!");
-					System.out.println();
 					
-					pathFile = tokens[1];
-
-					//Test if the path provided is indeed a 
+					outgoing.print("HTTP/1.1 200 OK \r\n");
 					
-					file = new File(rootDirectory + tokens[1]); // Can read file
+					outgoing.print("Connection: close \r\n");
 					
-					if (file.isDirectory()) {
+					outgoing.print("Content-Type: " + getMimeType(file.getName()) + " \r\n");
+					
+					outgoing.print("Content-Type: " + file.length() + " \r\n");
+					
+					outgoing.print("\r\n");
+					
+					outgoing.flush();
+					
+					
+					sendFile(file, connection.getOutputStream());
 						
-						System.out.println("Cannot send a directory!. Please write full path file");
-						System.out.println("--------------------");
-						System.out.println("--------------------");
+					}else if(!file.exists() || !file.isDirectory()) {
 						
+						sendErrorResponse(404, connection.getOutputStream());
 						
+					}else if(!tokens[0].contains("GET")) {
 						
-					}else if(file.exists() && file.canRead()) {
-						
-						System.out.println("File exists and can be read");
-						System.out.println("--------------------");
-						System.out.println("--------------------");
-						
-						
-						PrintWriter outgoing = new PrintWriter(connection.getOutputStream()); //This can cause malicious way of intruding
-						
-						
-						outgoing.print("HTTP/1.1 200 OK \r\n");
-						
-						outgoing.print("Connection: close \r\n");
-						
-						outgoing.print("Content-Type: " + getMimeType(file.getName()) + " \r\n");
-						
-						outgoing.print("Content-Type: " + file.length() + " \r\n");
-						
-						outgoing.println();
-						
-						
-						outgoing.flush();
-						
-						
-						sendFile(file, connection.getOutputStream());
-						
-						
-					}else {
-						
-						
+						sendErrorResponse(501, connection.getOutputStream());
 						
 					}
-
-					
-				}
-
+				
+				
+				
+				
 				System.out.println("  " + line);
 				
+
+				
 									
-			}
+			} //End of while loop
 			
 			
+
 			
-		}
+		} //End of try statement 
+		
 		catch (Exception e) {
 			
 			System.out.println("Error while communicating with client: " + e);
 			
 		}
+		
 		finally {  // make SURE connection is closed before returning!
 			try {
 				connection.close();
@@ -263,6 +251,44 @@ public class ReadRequest {
 	      out.write(x);  // write the byte to the socket
 	   }
 	   out.flush();
+	}
+	
+	
+	
+	
+	static void sendErrorResponse(int errorCode,  OutputStream socketOut) throws Exception{
+
+		
+		PrintWriter output = new PrintWriter(socketOut);
+		
+		output.print("HTTP/1.1 " + errorCode +  " \r\n");
+		
+		output.print("Connection: close" + " \r\n");
+		
+		output.print("Content-Type:  + "  + "text/html" + "\r\n");
+		
+		output.print("\r\n");
+		
+		if(errorCode == 404) {
+			
+			output.print("<html><head><title>Error</title></head><body>\n"
+					+ "<h2>Error:" + errorCode + " Not Found</h2>\n"
+					+ "<p>The resource that you requested does not exist on this server.</p>\n"
+					+ "</body></html>" + "\r\n");
+			
+		}else if(errorCode == 501) {
+			
+			output.print("<html><head><title>Error</title></head><body>\n"
+					+ "<h2>Error:" + errorCode + " Not Implemented </h2>\n"
+					+ "<p> The request is not GET </p>\n"
+					+ "</body></html>" + "\r\n");
+			
+		}
+		
+		
+		output.flush();
+
+	
 	}
 	
 
