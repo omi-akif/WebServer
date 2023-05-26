@@ -161,13 +161,13 @@ public class ReadRequest {
 						PrintWriter outgoing = new PrintWriter(connection.getOutputStream()); //This can cause malicious way of intruding
 						
 						
-						outgoing.println("HTTP/1.1 200 OK \r\n");
+						outgoing.print("HTTP/1.1 200 OK \r\n");
 						
-						outgoing.println("Connection: close \r\n");
+						outgoing.print("Connection: close \r\n");
 						
-						outgoing.println("Content-Type: " + getMimeType(file.getName()) + " \r\n");
+						outgoing.print("Content-Type: " + getMimeType(file.getName()) + " \r\n");
 						
-						outgoing.println("Content-Type: " + file.length() + " \r\n");
+						outgoing.print("Content-Type: " + file.length() + " \r\n");
 						
 						outgoing.println();
 						
@@ -176,6 +176,10 @@ public class ReadRequest {
 						
 						
 						sendFile(file, connection.getOutputStream());
+						
+						
+					}else {
+						
 						
 						
 					}
