@@ -158,20 +158,31 @@ public class ReadRequest {
 					
 					outgoing.flush();
 					
-//					outgoing.close();
 					
 					
 					sendFile(file, connection.getOutputStream());
 					
-					outgoing.close();
+					
+					
+					connection.close(); //Closing all connections
+					
+//					break;
 						
 					}else if(!file.exists() || !file.isDirectory()) {
 						
 						sendErrorResponse(404, connection.getOutputStream());
 						
+						connection.close();
+						
+//						break;
+						
 					}else if(!tokens[0].contains("GET")) {
 						
 						sendErrorResponse(501, connection.getOutputStream());
+						
+						connection.close();
+						
+//						break;
 						
 					}
 				
@@ -187,7 +198,8 @@ public class ReadRequest {
 		
 		catch (Exception e) {
 			
-			System.out.println("File has been accessed");
+			System.out.println("Access of file contents or Attempt of access");
+			System.out.println("New connection will open after socket close");
 			
 		}
 		
@@ -197,7 +209,9 @@ public class ReadRequest {
 			}
 			catch (Exception e) {
 			}
-			System.out.println("Connection closed.");
+			System.out.println();
+			System.out.println("-------------------------");
+			System.out.println("Connection closed. Starting new connection.");
 		}
 	}
 	
@@ -289,6 +303,7 @@ public class ReadRequest {
 		
 		
 		output.flush();
+		
 	
 	}
 	
