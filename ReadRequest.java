@@ -3,6 +3,7 @@
  */
 
 
+
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -47,9 +48,12 @@ public class ReadRequest {
 	         
 		  Socket connection;
 	         
-	         ConnectionThread(Socket connection) {
-	            this.connection = connection;
+	         ConnectionThread(Socket connection) { //Constructor
+	           
+	        	 this.connection = connection; //Assigning the argument variable with the object variable
+	         
 	         }
+	         
 	         public void run(){
 	            try {
 	            	handleConnection(connection);
@@ -104,7 +108,7 @@ public class ReadRequest {
 				
 				ConnectionThread thread = new ConnectionThread(connection);
 				
-				thread.run();
+				thread.start();
 				
 			}
 			
