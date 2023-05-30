@@ -39,6 +39,32 @@ public class ReadRequest {
 	
 	
 	/**
+	 * Nested Class for Multi-thread Processing
+	 */
+	
+	
+	  private static class ConnectionThread extends Thread {
+	         
+		  Socket connection;
+	         
+	         ConnectionThread(Socket connection) {
+	            this.connection = connection;
+	         }
+	         public void run(){
+	            try {
+	            	handleConnection(connection);
+	            }
+	            catch (Exception e){
+	            	
+	            	System.out.println("Server has been shutdown. Encountered an exception!");
+	            	
+	            }
+	        	 
+	        	 
+	         }
+	      }
+	
+	/**
 	 * Main program opens a server socket and listens for connection
 	 * requests.  It calls the handleConnection() method to respond
 	 * to connection requests.  The program runs in an infinite loop,
@@ -74,8 +100,11 @@ public class ReadRequest {
 				
 				Socket connection = serverSocket.accept();
 				System.out.println("\nConnection from "  + connection.getRemoteSocketAddress());
-				handleConnection(connection);
+//				handleConnection(connection);
 				
+				ConnectionThread thread = new ConnectionThread(connection);
+				
+				thread.run();
 				
 			}
 			
@@ -87,7 +116,7 @@ public class ReadRequest {
 			 */
 			
 		}
-		catch (Exception e) {
+		catch (Exception e) { //Ensure that the socket is shutdown not matter what
 			System.out.println("Server socket shut down unexpectedly!");
 			System.out.println("Error: " + e);
 			System.out.println("Exiting.");
@@ -306,6 +335,8 @@ public class ReadRequest {
 		
 	
 	}
+	
+	
 	
 
 }
